@@ -4,11 +4,20 @@
 #include <chrono>
 #include <SFML/Graphics.hpp>
 #include <SFML/OpenGL.hpp>
+#include <thread>
 
 #include "Complex.h"
 #include "Config.h"
+#include "JuliaSet.h"
+#include "MandelbrotSet.h"
 
 uint8_t frameBuffer[WINDOW_HEIGHT][WINDOW_WIDTH][3];
+
+JuliaSet juliaSet(Complex(-0.74543, 0.11301));
+MandelbrotSet mandelbrotSet;
+
+sf::Vector2f pos(0, 0);
+double size = 256;
 
 void setPixel(const uint16_t& x, const uint16_t& y, const uint32_t& color) {
     frameBuffer[x][y][0] = color >> 24;
@@ -17,20 +26,60 @@ void setPixel(const uint16_t& x, const uint16_t& y, const uint32_t& color) {
     return;
 }
 
-void fillScreen(const uint32_t& color) {
-    for (uint16_t i = 0; i < WINDOW_HEIGHT; ++i) {
-        for (uint16_t j = 0; j < WINDOW_WIDTH; ++j) {
-            setPixel(i, j, color);
-        }
+uint32_t HSVtoRGB(uint16_t hue, uint8_t saturation, uint8_t value, uint8_t alpha = 255) {
+    hue %= 360;
+    saturation = std::min(std::max(saturation, (uint8_t)0), (uint8_t)100);
+    value = std::min(std::max(value, (uint8_t)0), (uint8_t)100);
+    alpha = std::min(std::max(alpha, (uint8_t)0), (uint8_t)100);
+
+    double s = saturation / 100.0;
+    double v = value / 100.0;
+
+    double C = s * v;
+    double X = C * (1 - abs(std::fmod(hue / 60.0, 2) - 1));
+    double m = v - C;
+
+    if (hue < 60) {
+        uint8_t r = (C + m) * 255;
+        uint8_t g = (X + m) * 255;
+        uint8_t b = m * 255;
+        return (r << 24) | (g << 16) | (b << 8) | alpha;
     }
-    return;
+    if (hue < 120) {
+        uint8_t r = (X + m) * 255;
+        uint8_t g = (C + m) * 255;
+        uint8_t b = m * 255;
+        return (r << 24) | (g << 16) | (b << 8) | alpha;
+    }
+    if (hue < 180) {
+        uint8_t r = m * 255;
+        uint8_t g = (C + m) * 255;
+        uint8_t b = (X + m) * 255;
+        return (r << 24) | (g << 16) | (b << 8) | alpha;
+    }
+    if (hue < 240) {
+        uint8_t r = m * 255;
+        uint8_t g = (X + m) * 255;
+        uint8_t b = (C + m) * 255;
+        return (r << 24) | (g << 16) | (b << 8) | alpha;
+    }
+    if (hue < 300) {
+        uint8_t r = (X + m) * 255;
+        uint8_t g = m * 255;
+        uint8_t b = (C + m) * 255;
+        return (r << 24) | (g << 16) | (b << 8) | alpha;
+    }
+    uint8_t r = (C + m) * 255;
+    uint8_t g = m * 255;
+    uint8_t b = (X + m) * 255;
+    return (r << 24) | (g << 16) | (b << 8) | alpha;
 }
 
 void eventProcess(sf::Window& window) {
     static std::pair<int16_t, int16_t> start_mouse_pos = { -1, -1 };
     sf::Event event;
 
-    if (window.pollEvent(event)) {
+    while (window.pollEvent(event)) {
         if (event.type == sf::Event::Closed) {
             window.close();
             return;
@@ -70,13 +119,72 @@ void eventProcess(sf::Window& window) {
             else if (event.mouseWheel.delta < 0 && cur_size_index > 0) --cur_size_index;*/
         }
         else if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-            sf::Vector2i mouse_pos = sf::Mouse::getPosition();
-            if (start_mouse_pos.first >= 0 && start_mouse_pos.second >= 0) {/*
+            sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+            if (mousePos.x >= 0 && mousePos.x < WINDOW_WIDTH && mousePos.y >= 0 && mousePos.y <= WINDOW_HEIGHT) {
+                window.setTitle("Mandelbrot [0.1] - counting");
+
+                pos.x -= (mousePos.x - WINDOW_WIDTH / 2.0) / size;
+                pos.y += (mousePos.y - WINDOW_HEIGHT / 2.0) / size;
+                size *= 4;
+
+                for (uint16_t i = 0; i < WINDOW_HEIGHT; ++i) {
+                    eventProcess(window);
+                    for (uint16_t j = 0; j < WINDOW_WIDTH; ++j) {
+                        double x = (j - WINDOW_WIDTH / 2.0) / size - pos.x;
+                        double y = (i - WINDOW_HEIGHT / 2.0) / size - pos.y;
+                        uint16_t iterations = juliaSet.countIterations(Complex(x, y), ITERATIONS_LIMIT);
+
+                        if (iterations == ITERATIONS_LIMIT) {
+                            setPixel(i, j, 0);
+                        }
+                        else {
+                            setPixel(i, j, HSVtoRGB(iterations, 75, 75));
+                        }
+                    }
+                    glDrawPixels(WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, &frameBuffer);
+                    window.display();
+                }
+                window.setTitle("Mandelbrot [0.1]");
+                window.requestFocus();
+            }
+
+
+            /*if (start_mouse_pos.first >= 0 && start_mouse_pos.second >= 0) {
                 need_shift.first -= (mouse_pos.x - start_mouse_pos.first) / cur_size;
-                need_shift.second += (mouse_pos.y - start_mouse_pos.second) / cur_size;*/
+                need_shift.second += (mouse_pos.y - start_mouse_pos.second) / cur_size;
             }
             start_mouse_pos.first = mouse_pos.x;
-            start_mouse_pos.second = mouse_pos.y;
+            start_mouse_pos.second = mouse_pos.y;*/
+        }
+        else if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
+            sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+            if (mousePos.x >= 0 && mousePos.x < WINDOW_WIDTH && mousePos.y >= 0 && mousePos.y <= WINDOW_HEIGHT) {
+                window.setTitle("Mandelbrot [0.1] - counting");
+
+                pos.x -= (mousePos.x - WINDOW_WIDTH / 2.0) / size;
+                pos.y += (mousePos.y - WINDOW_HEIGHT / 2.0) / size;
+                size /= 4;
+
+                for (uint16_t i = 0; i < WINDOW_HEIGHT; ++i) {
+                    eventProcess(window);
+                    for (uint16_t j = 0; j < WINDOW_WIDTH; ++j) {
+                        double x = (j - WINDOW_WIDTH / 2.0) / size - pos.x;
+                        double y = (i - WINDOW_HEIGHT / 2.0) / size - pos.y;
+                        uint16_t iterations = juliaSet.countIterations(Complex(x, y), ITERATIONS_LIMIT);
+
+                        if (iterations == ITERATIONS_LIMIT) {
+                            setPixel(i, j, 0);
+                        }
+                        else {
+                            setPixel(i, j, HSVtoRGB(iterations, 75, 75));
+                        }
+                    }
+                    glDrawPixels(WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, &frameBuffer);
+                    window.display();
+                }
+                window.setTitle("Mandelbrot [0.1]");
+                window.requestFocus();
+            }
         }
         else if (sf::Event::MouseButtonReleased) {
             start_mouse_pos.first = -1;
@@ -94,6 +202,25 @@ int main() {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glEnable(GL_TEXTURE_2D);
 
+    for (uint16_t i = 0; i < WINDOW_HEIGHT; ++i) {
+        eventProcess(window);
+        for (uint16_t j = 0; j < WINDOW_WIDTH; ++j) {
+            double x = (j - WINDOW_WIDTH / 2.0) / size - pos.x;
+            double y = (i - WINDOW_HEIGHT / 2.0) / size - pos.y;
+            uint16_t iterations = juliaSet.countIterations(Complex(x, y), ITERATIONS_LIMIT);
+
+            if (iterations == ITERATIONS_LIMIT) {
+                setPixel(i, j, 0);
+            }
+            else {
+                setPixel(i, j, HSVtoRGB(iterations, 75, 75));
+            }
+        }
+        glDrawPixels(WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, &frameBuffer);
+        window.display();
+    }
+    window.requestFocus();
+
     while (window.isOpen()) {
         /*
         std::chrono::duration<double> t = std::chrono::system_clock::now().time_since_epoch();
@@ -108,32 +235,28 @@ int main() {
         time = t.count();
         */
 
-        glClear(GL_COLOR_BUFFER_BIT);
-        //fillScreen(background_color);
+        //glClear(GL_COLOR_BUFFER_BIT);
 
         eventProcess(window);
-        //animationProcess();
 
-        uint16_t x = 100, y = 1;
-        for (uint16_t x = 0; x < WINDOW_WIDTH; ++x) {
-            for (uint16_t y = 0; y < WINDOW_HEIGHT; ++y) {
-                Complex coord(x / 100.0 - WINDOW_WIDTH / 200.0, y / 100.0 - WINDOW_HEIGHT / 200.0);
-                Complex z = coord + Complex(-0.69, 0.2);
-                Complex sq = z * z;
-                if (sq > Complex(1, 0)) {
-                    setPixel(x, y, 0xc00060FF);
-                }
-                else if (sq == Complex(1, 0)) {
-                    setPixel(x, y, 0xc00000FF);
+        /*
+        for (uint16_t i = 0; i < WINDOW_HEIGHT; ++i) {
+            for (uint16_t j = 0; j < WINDOW_WIDTH; ++j) {
+                double x = (j - WINDOW_WIDTH / 2.0) / size - pos.x;
+                double y = (i - WINDOW_HEIGHT / 2.0) / size - pos.y;
+                uint16_t iterations = juliaSet.countIterations(Complex(x, y), ITERATIONS_LIMIT);
+
+                if (iterations == ITERATIONS_LIMIT) {
+                    setPixel(i, j, 0);
                 }
                 else {
-                    setPixel(x, y, 0x000000FF);
+                    setPixel(i, j, HSVtoRGB(iterations, 75, 75));
                 }
             }
+            glDrawPixels(WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, &frameBuffer);
+            window.display();
         }
-
-        glDrawPixels(WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, &frameBuffer);
-        window.display();
+        */
     }
     return 0;
 }

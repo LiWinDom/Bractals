@@ -4,7 +4,7 @@
 class Complex
 {
 public:
-	Complex(const double& real, const double& imaginable);
+	Complex(const double& real = 0, const double& imaginable = 0);
 
 	double getReal();
 

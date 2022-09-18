@@ -1,8 +1,8 @@
 #include "Complex.h"
 
 Complex::Complex(const double& real, const double& imaginable) {
-	this->real = real;
-	this->imaginable = imaginable;
+	this->setReal(real);
+	this->setImaginable(imaginable);
 	return;
 }
 
