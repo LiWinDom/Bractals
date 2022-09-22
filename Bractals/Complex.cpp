@@ -6,24 +6,6 @@ Complex::Complex(const double& real, const double& imaginable) {
 	return;
 }
 
-double Complex::getReal() {
-	return this->real;
-}
-
-void Complex::setReal(const double& real) {
-	this->real = real;
-	return;
-}
-
-double Complex::getImaginable() {
-	return this->imaginable;
-}
-
-void Complex::setImaginable(const double& imaginable) {
-	this->imaginable = imaginable;
-	return;
-}
-
 double Complex::abs() {
 	return std::sqrt(this->getReal() * this->getReal() + this->getImaginable() + this->getImaginable());
 }

@@ -6,13 +6,21 @@ class Complex
 public:
 	Complex(const double& real = 0, const double& imaginable = 0);
 
-	double getReal();
+	void setReal(const double& real) {
+		this->real = real;
+	}
 
-	void setReal(const double& real);
+	double getReal() {
+		return this->real;
+	}
 
-	double getImaginable();
+	void setImaginable(const double& imaginable) {
+		this->imaginable = imaginable;
+	}
 
-	void setImaginable(const double& imaginable);
+	double getImaginable() {
+		return this->imaginable;
+	}
 
 	double abs();
 
