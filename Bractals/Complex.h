@@ -10,7 +10,7 @@ public:
 		this->real = real;
 	}
 
-	double getReal() {
+	double getReal() const {
 		return this->real;
 	}
 
@@ -18,11 +18,11 @@ public:
 		this->imaginable = imaginable;
 	}
 
-	double getImaginable() {
+	double getImaginable() const {
 		return this->imaginable;
 	}
 
-	double abs();
+	double abs() const;
 
 
 	bool operator== (const Complex& obj);
