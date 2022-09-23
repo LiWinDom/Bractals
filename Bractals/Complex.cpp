@@ -7,7 +7,7 @@ Complex::Complex(const double& real, const double& imaginable) {
 }
 
 double Complex::abs() const {
-	return std::sqrt(real_ * real_ + imaginable_ + imaginable_);
+	return std::sqrt(real_ * real_ + imaginable_ * imaginable_);
 }
 
 
