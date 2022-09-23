@@ -15,7 +15,7 @@ Fractal fractals[] = {
             return Complex(0, 0);
         },
         [](const Complex& z, const Complex& c, const Complex& coord) -> Complex {
-            return static_cast<Complex>(z) * z + coord;
+            return z * z + coord;
         },
         Complex(0, 0), sf::Vector2i(WINDOW_WIDTH, WINDOW_HEIGHT), 256
     ),
@@ -24,7 +24,7 @@ Fractal fractals[] = {
             return coord;
         },
         [](const Complex& z, const Complex& c, const Complex& coord) -> Complex {
-            return static_cast<Complex>(z) * z + c;
+            return z * z + c;
         },
         Complex(-0.7269, 0.1889), sf::Vector2i(WINDOW_WIDTH, WINDOW_HEIGHT), 256
     ),
@@ -33,7 +33,7 @@ Fractal fractals[] = {
             return coord;
         },
         [](const Complex& z, const Complex& c, const Complex& coord) -> Complex {
-            return static_cast<Complex>(z) * z + c;
+            return z * z + c;
         },
         Complex(0.285, 0.01), sf::Vector2i(WINDOW_WIDTH, WINDOW_HEIGHT), 256
     ),
@@ -42,7 +42,7 @@ Fractal fractals[] = {
             return coord;
         },
         [](const Complex& z, const Complex& c, const Complex& coord) -> Complex {
-            return static_cast<Complex>(z) * z + c;
+            return z * z + c;
         },
         Complex(-0.1, 0.651), sf::Vector2i(WINDOW_WIDTH, WINDOW_HEIGHT), 256
     )

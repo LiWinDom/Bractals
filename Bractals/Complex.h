@@ -25,24 +25,24 @@ public:
 	double abs() const;
 
 
-	bool operator== (const Complex& obj);
+	bool operator== (const Complex& obj) const;
 
-	bool operator> (const Complex& obj);
+	bool operator> (const Complex& obj) const;
 
-	bool operator< (const Complex& obj);
+	bool operator< (const Complex& obj) const;
 
-	bool operator>= (const Complex& obj);
+	bool operator>= (const Complex& obj) const;
 
-	bool operator<= (const Complex& obj);
+	bool operator<= (const Complex& obj) const;
 
 
-	Complex operator+ (const Complex& obj);
+	Complex operator+ (const Complex& obj) const;
 
-	Complex operator- (const Complex& obj);
+	Complex operator- (const Complex& obj) const;
 
-	Complex operator* (const Complex& obj);
+	Complex operator* (const Complex& obj) const;
 
-	Complex operator/ (const Complex& obj);
+	Complex operator/ (const Complex& obj) const;
 
 
 	Complex operator+= (const Complex& obj);
