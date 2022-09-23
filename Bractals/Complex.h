@@ -27,6 +27,8 @@ public:
 
 	bool operator== (const Complex& obj) const;
 
+	bool operator!= (const Complex& obj) const;
+
 	bool operator> (const Complex& obj) const;
 
 	bool operator< (const Complex& obj) const;

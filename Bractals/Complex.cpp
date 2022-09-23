@@ -15,6 +15,10 @@ bool Complex::operator== (const Complex& obj) const {
 	return this->getReal() == obj.getReal() && this->getImaginable() == obj.getImaginable();
 }
 
+bool Complex::operator!= (const Complex& obj) const {
+	return this->getReal() != obj.getReal() || this->getImaginable() != obj.getImaginable();
+}
+
 bool Complex::operator> (const Complex& obj) const {
 	return this->abs() > obj.abs();
 }
