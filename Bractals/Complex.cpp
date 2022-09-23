@@ -1,76 +1,76 @@
 #include "Complex.h"
 
 Complex::Complex(const double& real, const double& imaginable) {
-	this->setReal(real);
-	this->setImaginable(imaginable);
+	real_ = real;
+	imaginable_ = imaginable;
 	return;
 }
 
 double Complex::abs() const {
-	return std::sqrt(this->getReal() * this->getReal() + this->getImaginable() + this->getImaginable());
+	return std::sqrt(real_ * real_ + imaginable_ + imaginable_);
 }
 
 
 bool Complex::operator== (const Complex& obj) const {
-	return this->getReal() == obj.getReal() && this->getImaginable() == obj.getImaginable();
+	return real_ == obj.real_ && imaginable_ == obj.imaginable_;
 }
 
 bool Complex::operator!= (const Complex& obj) const {
-	return this->getReal() != obj.getReal() || this->getImaginable() != obj.getImaginable();
-}
-
-bool Complex::operator> (const Complex& obj) const {
-	return this->abs() > obj.abs();
+	return !operator==(obj);
 }
 
 bool Complex::operator< (const Complex& obj) const {
-	return this->abs() < obj.abs();
+	return abs() < obj.abs();
 }
 
-bool Complex::operator>= (const Complex& obj) const {
-	return this->abs() >= obj.abs();
+bool Complex::operator> (const Complex& obj) const {
+	return obj.operator<(*this);
 }
 
 bool Complex::operator<= (const Complex& obj) const {
-	return this->abs() <= obj.abs();
+	return !operator>(obj);
+}
+
+bool Complex::operator>= (const Complex& obj) const {
+	return !operator<(obj);
 }
 
 
 Complex Complex::operator+ (const Complex& obj) const {
-	return Complex(this->getReal() + obj.getReal(), this->getImaginable() + obj.getImaginable());
+	return Complex(real_ + obj.real_, imaginable_ + obj.imaginable_);
 }
 
 Complex Complex::operator- (const Complex& obj) const {
-	return Complex(this->getReal() - obj.getReal(), this->getImaginable() - obj.getImaginable());
+	return Complex(real_ - obj.real_, imaginable_ - obj.imaginable_);
 }
 
 Complex Complex::operator* (const Complex& obj) const {
-	return Complex(this->getReal() * obj.getReal() - this->getImaginable() * obj.getImaginable(),
-		this->getReal() * obj.getImaginable() + this->getImaginable() * obj.getReal());
+	return Complex(real_ * obj.real_ - imaginable_ * obj.imaginable_,
+		real_ * obj.imaginable_ + imaginable_ * obj.real_);
 }
 
 Complex Complex::operator/ (const Complex& obj) const {
-	Complex up = *this * Complex(obj.getReal(), -obj.getImaginable());
-	Complex down = obj * Complex(obj.getReal(), -obj.getImaginable());
-	return Complex(up.getReal() / down.getReal(), up.getImaginable() / up.getReal());
+	Complex up = *this * Complex(obj.real_, -obj.imaginable_);
+	Complex down = obj * Complex(obj.real_, -obj.imaginable_);
+	return Complex(up.real_ / down.real_, up.imaginable_ / up.real_);
 }
 
 
 Complex Complex::operator+= (const Complex& obj) {
-	return *this = Complex(this->getReal() + obj.getReal(), this->getImaginable() + obj.getImaginable());
+	return *this = Complex(real_ + obj.real_, imaginable_ + obj.imaginable_);
 }
 
 Complex Complex::operator-= (const Complex& obj) {
-	return *this = Complex(this->getReal() - obj.getReal(), this->getImaginable() - obj.getImaginable());
+	return *this = Complex(real_ - obj.real_, imaginable_ - obj.imaginable_);
 }
 
 Complex Complex::operator*= (const Complex& obj) {
-	return *this = Complex(this->getReal() * obj.getReal() - this->getImaginable() * obj.getImaginable(),
-		this->getReal() * obj.getImaginable() + this->getImaginable() * obj.getReal());
+	return *this = Complex(real_ * obj.real_ - imaginable_ * obj.imaginable_,
+		real_ * obj.imaginable_ + imaginable_ * obj.real_);
 }
 
 Complex Complex::operator/= (const Complex& obj) {
-	Complex up = *this * Complex(obj.getReal(), -obj.getImaginable());
-	Complex down = obj * Complex(obj.getReal(), -obj.getImaginable());
-	return *this = Complex(up.getReal() / down.getReal(), up.getImaginable() / up.getReal());
+	Complex up = *this * Complex(obj.real_, -obj.imaginable_);
+	Complex down = obj * Complex(obj.real_, -obj.imaginable_);
+	return *this = Complex(up.real_ / down.real_, up.imaginable_ / up.real_);
 }

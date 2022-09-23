@@ -14,41 +14,23 @@ public:
 		const std::function<Complex(const Complex& z, const Complex& c, const Complex& coord)>& function,
 		const Complex& c, const sf::Vector2i& size, const double& zoom, const sf::Vector2<double>& startPos = sf::Vector2<double>(0, 0));
 
-	void setC(const Complex& c) {
-		this->c = c;
-	}
+	void setC(const Complex& c) { c_ = c; }
 
-	Complex getC() {
-		return this->c;
-	}
+	Complex getC() { return c_; }
 
-	void setSize(const sf::Vector2i& size) {
-		this->size = size;
-	}
+	void setSize(const sf::Vector2i& size) { size_ = size; }
 
-	sf::Vector2i getSize() {
-		return this->size;
-	}
+	sf::Vector2i getSize() { return size_; }
 
-	void setPos(const sf::Vector2<double>& pos) {
-		this->pos = pos;
-	}
+	void setPos(const sf::Vector2<double>& pos) { pos_ = pos; }
 
-	sf::Vector2<double> getPos() {
-		return this->pos;
-	}
+	sf::Vector2<double> getPos() { return pos_; }
 
-	void setZoom(const double& zoom) {
-		this->zoom = zoom;
-	}
+	void setZoom(const double& zoom) { zoom_ = zoom; }
 
-	double getZoom() {
-		return this->zoom;
-	}
+	double getZoom() { return zoom_; }
 
-	std::vector<std::vector<std::vector<uint8_t>>> getFrame() {
-		return this->frame;
-	}
+	std::vector<std::vector<std::vector<uint8_t>>> getFrame() { return frame_; }
 
 	void recalc(const uint16_t& iterationsLimit, const std::function<void()>& callback = []() -> void {}, const uint16_t& callbackPerLines = 0);
 
@@ -57,14 +39,14 @@ private:
 
 	uint16_t countIterations(const Complex& coord, const uint16_t& iterationsLimit);
 
-	std::function<Complex(const Complex& c, const Complex& coord)> getZ0;
-	std::function<Complex(const Complex& z, const Complex& c, const Complex& coord)> function;
-	Complex c;
+	std::function<Complex(const Complex& c, const Complex& coord)> getZ0_;
+	std::function<Complex(const Complex& z, const Complex& c, const Complex& coord)> function_;
+	Complex c_;
 
-	sf::Vector2i size;
-	sf::Vector2<double> pos;
-	double zoom;
+	sf::Vector2i size_;
+	sf::Vector2<double> pos_;
+	double zoom_;
 
-	std::vector<std::vector<std::vector<uint8_t>>> frame;
+	std::vector<std::vector<std::vector<uint8_t>>> frame_;
 };
 
