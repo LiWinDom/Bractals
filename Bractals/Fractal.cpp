@@ -9,7 +9,7 @@ Fractal::Fractal(const std::function<Complex(const Complex& c, const Complex& co
 	size_ = size;
 	zoom_ = zoom;
 	pos_ = startPos;
-	frame_ = std::vector<std::vector<std::vector<uint8_t>>>(size.y, std::vector<std::vector<uint8_t>>(size.x, std::vector<uint8_t>(3, 0)));
+	frame_ = std::vector<std::vector<std::vector<uint8_t>>>(size_.y, std::vector<std::vector<uint8_t>>(size_.x, std::vector<uint8_t>(3, 0)));
 	return;
 }
 

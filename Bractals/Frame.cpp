@@ -7,6 +7,23 @@ void frame::setPixel(std::vector<std::vector<std::vector<uint8_t>>>& frame, cons
     return;
 }
 
+std::vector<std::vector<std::vector<uint8_t>>> frame::resize(const std::vector<std::vector<std::vector<uint8_t>>>& frame, const uint16_t& x1, const uint16_t& y1, const uint16_t& x2, const uint16_t& y2) {
+    std::vector<std::vector<std::vector<uint8_t>>> newFrame(frame.size(), std::vector<std::vector<uint8_t>>(frame[0].size(), std::vector<uint8_t>(3, 0)));
+    uint16_t sizeX = x2 - x1;
+    uint16_t sizeY = y2 - y1;
+
+    for (uint16_t i = 0; i < frame.size(); ++i) {
+        for (uint16_t j = 0; j < frame[i].size(); ++j) {
+            uint16_t fromX = std::round((double)j / frame[i].size() * sizeX + x1);
+            uint16_t fromY = std::round((double)i / frame.size() * sizeY + y1);
+            newFrame[i][j][0] = frame[fromY][fromX][0];
+            newFrame[i][j][1] = frame[fromY][fromX][1];
+            newFrame[i][j][2] = frame[fromY][fromX][2];
+        }
+    }
+    return newFrame;
+}
+
 uint32_t frame::HSVtoRGB(uint16_t hue, uint8_t saturation, uint8_t value, uint8_t alpha) {
     hue %= 360;
     saturation = std::min(std::max(saturation, (uint8_t)0), (uint8_t)100);

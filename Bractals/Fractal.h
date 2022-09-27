@@ -30,6 +30,8 @@ public:
 
 	double getZoom() { return zoom_; }
 
+	void setFrame(const std::vector<std::vector<std::vector<uint8_t>>>& frame) { frame_ = frame; }
+
 	std::vector<std::vector<std::vector<uint8_t>>> getFrame() { return frame_; }
 
 	void recalc(const uint16_t& iterationsLimit, const std::function<void()>& callback = []() -> void {}, const uint16_t& callbackPerLines = 0);

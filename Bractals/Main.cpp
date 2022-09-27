@@ -6,8 +6,23 @@
 #include "Complex.h"
 #include "Config.h"
 #include "Fractal.h"
+#include "Frame.h"
+
+struct Shape {
+public:
+    Shape(const std::vector<sf::Vector2<double>>& vertexes, const uint32_t& color, const uint16_t& thinkness = 1) {
+        this->vertexes = vertexes;
+        this->color = color;
+        this->thinkness = thinkness;
+    }
+
+    std::vector<sf::Vector2<double>> vertexes;
+    uint32_t color;
+    uint16_t thinkness;
+};
 
 uint8_t frameBuffer[WINDOW_HEIGHT][WINDOW_WIDTH][3];
+std::vector<Shape> shapeBuffer;
 
 Fractal fractals[] = {
     Fractal(
@@ -49,11 +64,9 @@ Fractal fractals[] = {
 };
 uint8_t curFractal = 0;
 
-void setPixel(const uint16_t& x, const uint16_t& y, const uint32_t& color) {
-    frameBuffer[x][y][0] = color >> 24;
-    frameBuffer[x][y][1] = color >> 16;
-    frameBuffer[x][y][2] = color >> 8;
-    return;
+int8_t getSign(const int64_t& num) {
+    if (num == 0) return 0;
+    return std::abs(num) / num;
 }
 
 void setFrame(const std::vector<std::vector<std::vector<uint8_t>>>& frame) {
@@ -64,17 +77,70 @@ void setFrame(const std::vector<std::vector<std::vector<uint8_t>>>& frame) {
             frameBuffer[i][j][2] = frame[i][j][2];
         }
     }
+    glDrawPixels(WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, &frameBuffer);
     return;
 }
 
-void eventProcess(sf::Window& window) {
-    static std::pair<int16_t, int16_t> start_mouse_pos = { -1, -1 };
+void drawShape(const Shape& shape) {
+    glBegin(GL_LINE_LOOP);
+    glColor4ub(shape.color >> 24, shape.color >> 16, shape.color >> 8, shape.color);
+    for (uint16_t i = 0; i < shape.vertexes.size(); ++i) {
+        glLineWidth(shape.thinkness);
+        glVertex2f(shape.vertexes[i].x / WINDOW_WIDTH * 2 - 1, shape.vertexes[i].y / WINDOW_HEIGHT * 2 - 1);
+    }
+    glEnd();
+    glFlush();
+    return;
+}
+
+void drawShapeBuffer() {
+    for (uint8_t i = 0; i < shapeBuffer.size(); ++i) {
+        drawShape(shapeBuffer[i]);
+    }
+    return;
+}
+
+void eventProcessing(sf::Window& window, const bool& limited);
+
+void fractalRecalc(sf::Window& window, const int16_t& x1, const int16_t& y1, const int16_t& x2, const int16_t& y2) {
+    window.setTitle(PROGRAM_NAME + std::string(" [") + PROGRAM_VERSION + "] - counting");
+    if (x1 > 0 && y1 > 0 && x2 > 0 && y2 > 0 && x1 < WINDOW_WIDTH && y1 < WINDOW_HEIGHT && x2 < WINDOW_WIDTH && y2 < WINDOW_HEIGHT) {
+        fractals[curFractal].setFrame(frame::resize(fractals[curFractal].getFrame(), std::min(x1, x2), std::min(y1, y2), std::max(x1, x2), std::max(y1, y2)));
+    }
+    setFrame(fractals[curFractal].getFrame());
+    window.display();
+
+    sf::Vector2<double> center(x1 + (x2 - x1) / 2.0, y1 + (y2 - y1) / 2.0);
+    sf::Vector2<double> pos = fractals[curFractal].getPos();
+    pos.x -= (center.x - WINDOW_WIDTH / 2.0) / fractals[curFractal].getZoom();
+    pos.y -= (center.y - WINDOW_HEIGHT / 2.0) / fractals[curFractal].getZoom();
+    fractals[curFractal].setPos(pos);
+    fractals[curFractal].setZoom(fractals[curFractal].getZoom() * WINDOW_WIDTH / std::abs(x2 - x1));
+    fractals[curFractal].recalc(ITERATIONS_LIMIT, [&]() -> void {
+        eventProcessing(window, true);
+        setFrame(fractals[curFractal].getFrame());
+        window.display();
+        }, 10);
+    setFrame(fractals[curFractal].getFrame());
+    window.setTitle(PROGRAM_NAME + std::string(" [") + PROGRAM_VERSION + ']');
+    window.requestFocus();
+    return;
+}
+
+void eventProcessing(sf::Window& window, const bool& limited = false) {
+    static std::string mouseButton = "none";
+    static sf::Vector2i startMousePos = { -1, -1 };
+    static sf::Vector2i curMousePos = { -1, -1 };
     sf::Event event;
 
     while (window.pollEvent(event)) {
         if (event.type == sf::Event::Closed) {
             window.close();
             return;
+        }
+
+        if (limited == true) {
+            break;
         }
         else if (event.type == sf::Event::KeyPressed) {
             int8_t selected = -1;
@@ -93,61 +159,50 @@ void eventProcess(sf::Window& window) {
                 setFrame(fractals[curFractal].getFrame());
             }
         }
-        else if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-            sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-            if (mousePos.x >= 0 && mousePos.x < WINDOW_WIDTH && mousePos.y >= 0 && mousePos.y <= WINDOW_HEIGHT) {
-                window.setTitle(PROGRAM_NAME + std::string(" [") + PROGRAM_VERSION + "] - counting");
+    }
+    if (limited == true) {
+        return;
+    }
 
-                sf::Vector2<double> pos = fractals[curFractal].getPos();
-                pos.x -= (mousePos.x - WINDOW_WIDTH / 2.0) / fractals[curFractal].getZoom();
-                pos.y += (mousePos.y - WINDOW_HEIGHT / 2.0) / fractals[curFractal].getZoom();
-                fractals[curFractal].setPos(pos);
-                fractals[curFractal].setZoom(fractals[curFractal].getZoom() * 4);
-                fractals[curFractal].recalc(ITERATIONS_LIMIT, [&]() -> void {
-                    setFrame(fractals[curFractal].getFrame());
-                    glDrawPixels(WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, &frameBuffer);
-                    window.display();
-                }, 10);
-                setFrame(fractals[curFractal].getFrame());
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+        if (mouseButton == "none" || mouseButton == "left") {
+            curMousePos = sf::Mouse::getPosition(window);
 
-                window.setTitle(PROGRAM_NAME + std::string(" [") + PROGRAM_VERSION + ']');
-                window.requestFocus();
-            }
+            if (curMousePos != sf::Vector2i(-1, -1)) {
+                if (startMousePos == sf::Vector2i(-1, -1)) {
+                    startMousePos = curMousePos;
+                }
 
-            /*if (start_mouse_pos.first >= 0 && start_mouse_pos.second >= 0) {
-                need_shift.first -= (mouse_pos.x - start_mouse_pos.first) / cur_size;
-                need_shift.second += (mouse_pos.y - start_mouse_pos.second) / cur_size;
-            }
-            start_mouse_pos.first = mouse_pos.x;
-            start_mouse_pos.second = mouse_pos.y;*/
-        }
-        else if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
-            sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-            if (mousePos.x >= 0 && mousePos.x < WINDOW_WIDTH && mousePos.y >= 0 && mousePos.y <= WINDOW_HEIGHT) {
-                window.setTitle(PROGRAM_NAME + std::string(" [") + PROGRAM_VERSION + "] - counting");
-
-                sf::Vector2<double> pos = fractals[curFractal].getPos();
-                pos.x -= (mousePos.x - WINDOW_WIDTH / 2.0) / fractals[curFractal].getZoom();
-                pos.y += (mousePos.y - WINDOW_HEIGHT / 2.0) / fractals[curFractal].getZoom();
-                fractals[curFractal].setPos(pos);
-                fractals[curFractal].setZoom(fractals[curFractal].getZoom() / 4);
-                fractals[curFractal].recalc(ITERATIONS_LIMIT, [&]() -> void {
-                    setFrame(fractals[curFractal].getFrame());
-                    glDrawPixels(WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, &frameBuffer);
-                    window.display();
-                }, 10);
-                setFrame(fractals[curFractal].getFrame());
-
-                window.setTitle(PROGRAM_NAME + std::string(" [") + PROGRAM_VERSION + ']');
-                window.requestFocus();
+                if (std::abs((double)(startMousePos.x - curMousePos.x) / WINDOW_WIDTH) < std::abs((double)(startMousePos.y - curMousePos.y) / WINDOW_HEIGHT)) {
+                    curMousePos.y = startMousePos.y - std::abs((double)(curMousePos.x - startMousePos.x)) / WINDOW_WIDTH * WINDOW_HEIGHT * getSign((int16_t)(startMousePos.y - curMousePos.y));
+                }
+                else {
+                    curMousePos.x = startMousePos.x - std::abs((double)(curMousePos.y - startMousePos.y)) / WINDOW_HEIGHT * WINDOW_WIDTH * getSign((int16_t)(startMousePos.x - curMousePos.x));
+                }
+                shapeBuffer.push_back(Shape({ sf::Vector2<double>(startMousePos.x, WINDOW_HEIGHT - startMousePos.y), sf::Vector2<double>(curMousePos.x, WINDOW_HEIGHT - startMousePos.y), sf::Vector2<double>(curMousePos.x, WINDOW_HEIGHT - curMousePos.y), sf::Vector2<double>(startMousePos.x, WINDOW_HEIGHT - curMousePos.y) },
+                    0xFFFFFFFF, 10));
             }
         }
-        else if (sf::Event::MouseButtonReleased) {
-            start_mouse_pos.first = -1;
-            start_mouse_pos.second = -1;/*
-            need_shift.first = std::round(need_shift.first);
-            need_shift.second = std::round(need_shift.second);*/
+        mouseButton = "left";
+    }
+    else if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
+        if (mouseButton == "none") {
+            curMousePos = sf::Mouse::getPosition(window);
+            if (curMousePos.x >= 0 && curMousePos.x < WINDOW_WIDTH && curMousePos.y >= 0 && curMousePos.y <= WINDOW_HEIGHT) {
+                fractalRecalc(window, curMousePos.x - WINDOW_WIDTH * 2, curMousePos.y - WINDOW_HEIGHT * 2, curMousePos.x + WINDOW_WIDTH * 2, curMousePos.y + WINDOW_HEIGHT * 2);
+            }
+            mouseButton = "right";
         }
+    }
+    else if (sf::Event::MouseButtonReleased) {
+        if (curMousePos.x >= 0 && curMousePos.x < WINDOW_WIDTH && curMousePos.y >= 0 && curMousePos.y <= WINDOW_HEIGHT) {
+            if (mouseButton == "left") {
+                fractalRecalc(window, startMousePos.x, WINDOW_HEIGHT - startMousePos.y, curMousePos.x, WINDOW_HEIGHT - curMousePos.y);
+            }
+        }
+        mouseButton = "none";
+        curMousePos = sf::Vector2i(-1, -1);
+        startMousePos = sf::Vector2i(-1, -1);
     }
     return;
 }
@@ -168,18 +223,16 @@ int main() {
         sf::Window window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), PROGRAM_NAME + std::string(" [") + PROGRAM_VERSION + ']', sf::Style::Close);
         window.setActive(true);
 
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glEnable(GL_TEXTURE_2D);
         setFrame(fractals[curFractal].getFrame());
-
         window.requestFocus();
 
-        //std::async(std::launch::async, drawJulia, window);
-
         while (window.isOpen()) {
-            eventProcess(window);
+            shapeBuffer.clear();
+            eventProcessing(window);
 
             glDrawPixels(WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, &frameBuffer);
+            drawShapeBuffer();
             window.display();
         }
     }
