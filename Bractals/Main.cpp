@@ -209,9 +209,9 @@ void eventProcessing(sf::Window& window, const bool& limited = false) {
 
 int main() {
     try {
-        std::cout << "Precalcing fractals, please wait..." << std::endl;
+        std::cout << "Precalulating fractals, please wait..." << std::endl;
         for (uint8_t i = 0; i < sizeof(fractals) / sizeof(Fractal); ++i) {
-            std::cout << "Precalcing fractal #" << (uint16_t)i + 1 << "...";
+            std::cout << "Precalculating fractal #" << (uint16_t)i + 1 << "...";
             fractals[i].recalc(ITERATIONS_LIMIT);
             std::cout << " Done!" << std::endl;
         }
