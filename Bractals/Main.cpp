@@ -10,15 +10,13 @@
 
 struct Shape {
 public:
-    Shape(const std::vector<sf::Vector2<double>>& vertexes, const uint32_t& color, const uint16_t& thinkness = 1) {
+    Shape(const std::vector<sf::Vector2<double>>& vertexes, const uint32_t& color) {
         this->vertexes = vertexes;
         this->color = color;
-        this->thinkness = thinkness;
     }
 
     std::vector<sf::Vector2<double>> vertexes;
     uint32_t color;
-    uint16_t thinkness;
 };
 
 uint8_t frameBuffer[WINDOW_HEIGHT][WINDOW_WIDTH][3];
@@ -85,7 +83,6 @@ void drawShape(const Shape& shape) {
     glBegin(GL_LINE_LOOP);
     glColor4ub(shape.color >> 24, shape.color >> 16, shape.color >> 8, shape.color);
     for (uint16_t i = 0; i < shape.vertexes.size(); ++i) {
-        glLineWidth(shape.thinkness);
         glVertex2f(shape.vertexes[i].x / WINDOW_WIDTH * 2 - 1, shape.vertexes[i].y / WINDOW_HEIGHT * 2 - 1);
     }
     glEnd();
@@ -181,7 +178,7 @@ void eventProcessing(sf::Window& window, const bool& limited = false) {
                     shift.x = (double)shift.y / WINDOW_HEIGHT * WINDOW_WIDTH;
                 }
                 shapeBuffer.push_back(Shape({ sf::Vector2<double>(startMousePos.x - shift.x, WINDOW_HEIGHT - startMousePos.y - shift.y), sf::Vector2<double>(startMousePos.x + shift.x, WINDOW_HEIGHT - startMousePos.y - shift.y), sf::Vector2<double>(startMousePos.x + shift.x, WINDOW_HEIGHT - startMousePos.y + shift.y), sf::Vector2<double>(startMousePos.x - shift.x, WINDOW_HEIGHT - startMousePos.y + shift.y) },
-                    0xFFFFFFFF, 10));
+                    0xFFFFFFFF));
             }
         }
         mouseButton = "left";
@@ -217,7 +214,7 @@ void eventProcessing(sf::Window& window, const bool& limited = false) {
 
 int main() {
     try {
-        std::cout << "Precalulating fractals, please wait..." << std::endl;
+        std::cout << "Precalculating fractals, please wait..." << std::endl;
         for (uint8_t i = 0; i < sizeof(fractals) / sizeof(Fractal); ++i) {
             std::cout << "Precalculating fractal #" << (uint16_t)i + 1 << "...";
             fractals[i].recalc(ITERATIONS_LIMIT);
