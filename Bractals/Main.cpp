@@ -196,13 +196,15 @@ void eventProcessing(sf::Window& window, const bool& limited = false) {
         if (curMousePos.x >= 0 && curMousePos.x < WINDOW_WIDTH && curMousePos.y >= 0 && curMousePos.y <= WINDOW_HEIGHT) {
             if (mouseButton == "left") {
                 sf::Vector2i shift(std::abs(startMousePos.x - curMousePos.x), std::abs(startMousePos.y - curMousePos.y));
-                if ((double)shift.x / WINDOW_WIDTH < (double)shift.y / WINDOW_HEIGHT) {
-                    shift.y = (double)shift.x / WINDOW_WIDTH * WINDOW_HEIGHT;
+                if (shift.x > 0 && shift.y > 0) {
+                    if ((double)shift.x / WINDOW_WIDTH < (double)shift.y / WINDOW_HEIGHT) {
+                        shift.y = (double)shift.x / WINDOW_WIDTH * WINDOW_HEIGHT;
+                    }
+                    else {
+                        shift.x = (double)shift.y / WINDOW_HEIGHT * WINDOW_WIDTH;
+                    }
+                    fractalRecalc(window, startMousePos.x - shift.x, WINDOW_HEIGHT - startMousePos.y - shift.y, startMousePos.x + shift.x, WINDOW_HEIGHT - startMousePos.y + shift.y);
                 }
-                else {
-                    shift.x = (double)shift.y / WINDOW_HEIGHT * WINDOW_WIDTH;
-                }
-                fractalRecalc(window, startMousePos.x - shift.x, WINDOW_HEIGHT - startMousePos.y - shift.y, startMousePos.x + shift.x, WINDOW_HEIGHT - startMousePos.y + shift.y);
             }
         }
         mouseButton = "none";

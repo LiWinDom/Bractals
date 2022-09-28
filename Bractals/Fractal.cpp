@@ -2,13 +2,13 @@
 
 Fractal::Fractal(const std::function<Complex(const Complex& c, const Complex& coord)>& getZ0,
 	const std::function<Complex(const Complex& z, const Complex& c, const Complex& coord)>& function,
-	const Complex& c, const sf::Vector2i& size, const double& zoom, const sf::Vector2<double>& startPos) {
-	getZ0_ = getZ0;
-	function_ = function;
-	c_ = c;
-	size_ = size;
-	zoom_ = zoom;
-	pos_ = startPos;
+	const Complex& c, const sf::Vector2i& size, const double& zoom, const sf::Vector2<double>& startPos):
+	getZ0_(getZ0),
+	function_(function),
+	c_(c),
+	size_(size),
+	zoom_(zoom),
+	pos_(startPos) {
 	frame_ = std::vector<std::vector<std::vector<uint8_t>>>(size_.y, std::vector<std::vector<uint8_t>>(size_.x, std::vector<uint8_t>(3, 0)));
 	return;
 }

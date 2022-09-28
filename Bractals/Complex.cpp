@@ -1,8 +1,8 @@
 #include "Complex.h"
 
-Complex::Complex(const double& real, const double& imaginable) {
-	real_ = real;
-	imaginable_ = imaginable;
+Complex::Complex(const double& real, const double& imaginable) :
+	real_(real),
+	imaginable_(imaginable) {
 	return;
 }
 
