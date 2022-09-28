@@ -115,12 +115,12 @@ void fractalRecalc(sf::Window& window, const int16_t& x1, const int16_t& y1, con
     pos.x -= (center.x - WINDOW_WIDTH / 2.0) / fractals[curFractal].getZoom();
     pos.y -= (center.y - WINDOW_HEIGHT / 2.0) / fractals[curFractal].getZoom();
     fractals[curFractal].setPos(pos);
-    fractals[curFractal].setZoom(fractals[curFractal].getZoom() * WINDOW_WIDTH / std::abs(x2 - x1));
+    fractals[curFractal].setZoom(fractals[curFractal].getZoom() * std::min((double)WINDOW_WIDTH / std::abs(x2 - x1), (double)WINDOW_HEIGHT / std::abs(y2 - y1)));
     fractals[curFractal].recalc(ITERATIONS_LIMIT, [&]() -> void {
         eventProcessing(window, true);
         setFrame(fractals[curFractal].getFrame());
         window.display();
-        }, 10);
+        }, WINDOW_HEIGHT / 20);
     setFrame(fractals[curFractal].getFrame());
     window.setTitle(PROGRAM_NAME + std::string(" [") + PROGRAM_VERSION + ']');
     window.requestFocus();
@@ -173,13 +173,14 @@ void eventProcessing(sf::Window& window, const bool& limited = false) {
                     startMousePos = curMousePos;
                 }
 
-                if (std::abs((double)(startMousePos.x - curMousePos.x) / WINDOW_WIDTH) < std::abs((double)(startMousePos.y - curMousePos.y) / WINDOW_HEIGHT)) {
-                    curMousePos.y = startMousePos.y - std::abs((double)(curMousePos.x - startMousePos.x)) / WINDOW_WIDTH * WINDOW_HEIGHT * getSign((int16_t)(startMousePos.y - curMousePos.y));
+                sf::Vector2i shift(std::abs(startMousePos.x - curMousePos.x), std::abs(startMousePos.y - curMousePos.y));
+                if ((double)shift.x / WINDOW_WIDTH < (double)shift.y / WINDOW_HEIGHT) {
+                    shift.y = (double)shift.x / WINDOW_WIDTH * WINDOW_HEIGHT;
                 }
                 else {
-                    curMousePos.x = startMousePos.x - std::abs((double)(curMousePos.y - startMousePos.y)) / WINDOW_HEIGHT * WINDOW_WIDTH * getSign((int16_t)(startMousePos.x - curMousePos.x));
+                    shift.x = (double)shift.y / WINDOW_HEIGHT * WINDOW_WIDTH;
                 }
-                shapeBuffer.push_back(Shape({ sf::Vector2<double>(startMousePos.x, WINDOW_HEIGHT - startMousePos.y), sf::Vector2<double>(curMousePos.x, WINDOW_HEIGHT - startMousePos.y), sf::Vector2<double>(curMousePos.x, WINDOW_HEIGHT - curMousePos.y), sf::Vector2<double>(startMousePos.x, WINDOW_HEIGHT - curMousePos.y) },
+                shapeBuffer.push_back(Shape({ sf::Vector2<double>(startMousePos.x - shift.x, WINDOW_HEIGHT - startMousePos.y - shift.y), sf::Vector2<double>(startMousePos.x + shift.x, WINDOW_HEIGHT - startMousePos.y - shift.y), sf::Vector2<double>(startMousePos.x + shift.x, WINDOW_HEIGHT - startMousePos.y + shift.y), sf::Vector2<double>(startMousePos.x - shift.x, WINDOW_HEIGHT - startMousePos.y + shift.y) },
                     0xFFFFFFFF, 10));
             }
         }
@@ -197,7 +198,14 @@ void eventProcessing(sf::Window& window, const bool& limited = false) {
     else if (sf::Event::MouseButtonReleased) {
         if (curMousePos.x >= 0 && curMousePos.x < WINDOW_WIDTH && curMousePos.y >= 0 && curMousePos.y <= WINDOW_HEIGHT) {
             if (mouseButton == "left") {
-                fractalRecalc(window, startMousePos.x, WINDOW_HEIGHT - startMousePos.y, curMousePos.x, WINDOW_HEIGHT - curMousePos.y);
+                sf::Vector2i shift(std::abs(startMousePos.x - curMousePos.x), std::abs(startMousePos.y - curMousePos.y));
+                if ((double)shift.x / WINDOW_WIDTH < (double)shift.y / WINDOW_HEIGHT) {
+                    shift.y = (double)shift.x / WINDOW_WIDTH * WINDOW_HEIGHT;
+                }
+                else {
+                    shift.x = (double)shift.y / WINDOW_HEIGHT * WINDOW_WIDTH;
+                }
+                fractalRecalc(window, startMousePos.x - shift.x, WINDOW_HEIGHT - startMousePos.y - shift.y, startMousePos.x + shift.x, WINDOW_HEIGHT - startMousePos.y + shift.y);
             }
         }
         mouseButton = "none";

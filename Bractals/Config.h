@@ -1,7 +1,7 @@
 #pragma once
 
 #define PROGRAM_NAME "Bractals"
-#define PROGRAM_VERSION "1.11"
+#define PROGRAM_VERSION "1.2"
 
 //visible options
 #define WINDOW_WIDTH 1280
